@@ -4,6 +4,9 @@ local n = require('test.functional.testnvim')()
 local t_shada = require('test.functional.shada.testutil')
 local uv = vim.uv
 local paths = t.paths
+local helpers = require('test.functional.helpers')(after_each)
+local meths, curbufmeths, funcs =
+    helpers.meths, helpers.curbufmeths, helpers.command
 
 local api, nvim_command, fn, eq = n.api, n.command, n.fn, t.eq
 local write_file, set_session, exc_exec = t.write_file, n.set_session, n.exc_exec
@@ -288,5 +291,22 @@ describe('ShaDa support code', function()
     eq('', fn.getreg('a'))
     session:close()
     os.remove('NONE')
+  end)
+
+  it('does not store unlisted buffer', function()
+    local fname = funcs.getcwd() .. '/file'
+    meths.set_var('__fname', fname)
+    nvim_command('silent! edit `=__fname`')
+    curbufmeths.set_option('buflisted', false)
+    nvim_command('wshada! ' .. shada_fname)
+
+    eq({}, find_file(fname))
+
+    -- Set 'buflisted', then check again.
+    curbufmeths.set_option('buflisted', true)
+    nvim_command('wshada! ' .. shada_fname)
+    retry(nil, 4000, function()
+      eq({ [7] = 1, [8] = 1, [10] = 1 }, find_file(fname))
+    end)
   end)
 end)
