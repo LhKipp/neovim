@@ -298,7 +298,7 @@ describe('ShaDa support code', function()
 
     local fname = funcs.getcwd() .. '/file'
     meths.set_var('__fname', fname)
-    nvim_command('silent! edit `=__fname`')
+    nvim_command('edit `=__fname`')
     curbufmeths.set_option('buflisted', false)
     nvim_command('wshada! ' .. shada_fname)
 
